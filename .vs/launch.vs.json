@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "MyGIS.exe",
+      "name": "MyGIS.exe",
+      "args": [ "C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\us\\ct\\city_of_bridgeport-addresses-city.geojson" ]
+    }
+  ]
+}
