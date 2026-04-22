@@ -3,6 +3,7 @@
 
 #include "MyGIS.h"
 #include "GeoJSONLReader.h"
+#include "GeometryTool.h"
 
 #include <string>
 
@@ -20,9 +21,15 @@ int main(int argc, char** argv)
 	std::list<Feature> features = reader.read();
 
 
-	auto& first = features.front();
-	PointXY* p1 = static_cast<PointXY*>(first.Geometry.get());
-	std::cout << p1->Lon << ", " << p1->Lat << std::endl;
+	auto it = features.begin();
+	PointXY* firstPoint = static_cast<PointXY*>(it->Geometry.get());
+	++it;
+	PointXY* secondPoint = static_cast<PointXY*>(it->Geometry.get());
+
+	std::cout << "First point: " << *firstPoint << std::endl;
+	std::cout << "Second point: " << *secondPoint << std::endl;
+
+	std::cout << "Distance: " << MyGIS::calculateDistance(*firstPoint, *secondPoint) << std::endl;
 
 
 	return 0;

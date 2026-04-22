@@ -2,6 +2,8 @@
 
 #include <string>
 #include <memory>
+#include <format>
+#include <iostream>
 
 struct Properties
 {
@@ -41,4 +43,10 @@ struct PointXY : public Geometry
   double Lat = 0.0;
 
   PointXY(double lon, double lat) : Geometry(GeometryType::Point), Lat(lat), Lon(lon) {}
+
+  __declspec(noinline) friend std::ostream& operator<<(std::ostream& ss, const PointXY& point)
+  {
+    ss << std::format("Point({}, {})", point.Lon, point.Lat);
+    return ss;
+  }
 };
