@@ -1,20 +1,17 @@
 #pragma once
 
 #include "Feature.h"
-#include "GeometryDefine.h"
 
 #include <string>
 #include <list>
 
-
-class GeoJSONLReader
+class GeoJSONReader
 {
 public:
-  GeoJSONLReader(const std::string& geoJsonPath);
+  GeoJSONReader(const std::string& geoJsonPath);
 
   std::list<Feature> read();
 
 private:
   std::string _geoJsonPath;
-
 };

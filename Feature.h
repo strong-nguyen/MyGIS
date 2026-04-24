@@ -4,6 +4,7 @@
 #include <memory>
 #include <format>
 #include <iostream>
+#include <vector>
 
 struct Properties
 {
@@ -11,12 +12,17 @@ struct Properties
   std::string Street;
   std::string City;
 
-  Properties(const std::string& number = "", const std::string& street = "", const std::string& city = "") : Number(number), Street(street), City(city) {}
+  std::string Hash;
+  std::string Pid;
+
+  //Properties(const std::string& number = "", const std::string& street = "", const std::string& city = "") : Number(number), Street(street), City(city) {}
 };
 
 enum class GeometryType
 {
-  Point
+  Point,
+  Polygon,
+  MultiPolygon
 };
 
 struct Geometry
@@ -24,6 +30,21 @@ struct Geometry
   GeometryType Type;
 
   Geometry(GeometryType _type) : Type(_type) {}
+
+  bool isPoint() const
+  {
+    return Type == GeometryType::Point;
+  }
+
+  bool isPolygon() const
+  {
+    return Type == GeometryType::Polygon;
+  }
+
+  bool isMultiPolygon() const
+  {
+    return Type == GeometryType::MultiPolygon;
+  }
 };
 
 struct Feature
@@ -44,9 +65,25 @@ struct PointXY : public Geometry
 
   PointXY(double lon, double lat) : Geometry(GeometryType::Point), Lat(lat), Lon(lon) {}
 
-  __declspec(noinline) friend std::ostream& operator<<(std::ostream& ss, const PointXY& point)
+  friend std::ostream& operator<<(std::ostream& ss, const PointXY& point)
   {
     ss << std::format("Point({}, {})", point.Lon, point.Lat);
     return ss;
   }
+};
+
+
+struct PolygonXY : public Geometry
+{
+  std::vector<PointXY> Points;
+
+  PolygonXY();
+};
+
+
+struct MultiPolygonXY : public Geometry
+{
+  std::vector<PolygonXY> Polygons;
+
+  MultiPolygonXY();
 };

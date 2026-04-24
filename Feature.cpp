@@ -14,3 +14,15 @@ Feature::~Feature()
 {
 
 }
+
+PolygonXY::PolygonXY()
+  :
+  Geometry(GeometryType::Polygon)
+{
+}
+
+MultiPolygonXY::MultiPolygonXY()
+  :
+  Geometry(GeometryType::MultiPolygon)
+{
+}

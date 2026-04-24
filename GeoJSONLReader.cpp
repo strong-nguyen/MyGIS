@@ -32,13 +32,15 @@ std::list<Feature> GeoJSONLReader::read()
 
     // Extract properties
     Feature featureData;
-    featureData.Properties.Number = feature["properties"]["number"].get<std::string>();
-    featureData.Properties.Street = feature["properties"]["street"].get<std::string>();
-    featureData.Properties.City = feature["properties"]["city"].get<std::string>();
+    if (feature.contains("properties"))
+    {
+      featureData.Properties.Number = feature["properties"].value("number", "");
+      featureData.Properties.Street = feature["properties"].value("street", "");
+      featureData.Properties.City = feature["properties"].value("city", "");
 
-    //std::cout << std::format("type: {}, number: {}, street: {}\n", feature["type"].get<std::string>(), feature["properties"]["number"].get<std::string>(), feature["properties"]["street"].get<std::string>());
-
-
+      featureData.Properties.Hash = feature["properties"].value("hash", "");
+      featureData.Properties.Pid = feature["properties"].value("pid", "");
+    }
 
     // Extract geometry
     if (feature.contains("geometry"))
@@ -49,6 +51,16 @@ std::list<Feature> GeoJSONLReader::read()
         double lon = feature["geometry"]["coordinates"][0];
         double lat = feature["geometry"]["coordinates"][1];
         featureData.Geometry = std::make_unique<PointXY>(lon, lat);
+      }
+      else if (type == "Polygon")
+      {
+        auto polygon = std::make_unique<PolygonXY>();
+        json listPoints = feature["geometry"]["coordinates"][0];
+        for (int i = 0; i < listPoints.size(); ++i)
+        {
+          polygon->Points.push_back({listPoints[i][0], listPoints[i][1]});
+        }
+        featureData.Geometry = std::move(polygon);
       }
     }
 
