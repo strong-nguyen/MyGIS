@@ -8,6 +8,10 @@
 #include "VisualizerTool.h"
 
 #include <string>
+#include <filesystem>
+
+
+namespace fs = std::filesystem;
 
 
 int main(int argc, char** argv)
@@ -19,11 +23,19 @@ int main(int argc, char** argv)
 	}
 
 	std::string geoJSONPath(argv[1]);
-	//GeoJSONLReader reader(geoJSONPath);
-	GeoJSONReader reader(geoJSONPath);
-	std::list<Feature> features = reader.read();
-
-
+	fs::path jsonFile(geoJSONPath);
+	std::list<Feature> features;
+	if (fs::path ext = jsonFile.extension(); ext == ".geojson")
+	{
+		GeoJSONLReader reader(geoJSONPath);
+		features = reader.read();
+	}
+	else if (ext == ".json")
+	{
+		GeoJSONReader reader(geoJSONPath);
+		features = reader.read();
+	}
+	
 	PointXY* firstPoint = nullptr;
 	PointXY* secondPoint = nullptr;
 	PolygonXY* firstPoly = nullptr;

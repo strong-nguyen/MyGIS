@@ -7,6 +7,7 @@
       "project": "CMakeLists.txt",
       "projectTarget": "MyGIS.exe",
       "name": "MyGIS.exe",
+      //"args": [ "C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\us\\ct\\city_of_bridgeport-parcels-city.geojson" ]
       "args": [ "C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\vn.json" ]
     }
   ]
