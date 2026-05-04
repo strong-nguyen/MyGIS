@@ -3,10 +3,20 @@
 #include "GeometryTool.h"
 
 #include <fstream>
+#include <optional>
 
 namespace MyGIS
 {
-  void drawPolygon(PolygonXY* polygon, std::ofstream& svg)
+  void drawText(std::ofstream& svg, const std::optional<PointXY>& pos, const std::string& text)
+  {
+    // Centroid name
+    if (!std::empty(text) && pos)
+    {
+      std::string textElement = std::format("  <text x=\"{}\" y=\"{}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.1\">{}</text>\n", pos->Lon, -pos->Lat, text);
+      svg << textElement;
+    }
+  }
+  void drawPolygon(PolygonXY* polygon, const Properties properties, std::ofstream& svg)
   {
     svg << "  <path d=\"";
     for (int i = 0; i < polygon->Points.size(); ++i)
@@ -21,13 +31,14 @@ namespace MyGIS
 }
 
 
-void MyGIS::exportToSVG(const std::string& svgPath, const std::list<Geometry*> geometryList)
+void MyGIS::exportToSVG(const std::string& svgPath, const std::list<Feature*>& geometryList)
 {
   bg::model::box<geo_point> envelope;
   bg::assign_inverse(envelope);
 
-  for (const auto& geo : geometryList)
+  for (const auto& feature : geometryList)
   {
+    Geometry* geo = feature->Geometry.get();
     if (geo->Type == GeometryType::Point)
     {
       PointXY* point = static_cast<PointXY*>(geo);
@@ -59,20 +70,23 @@ void MyGIS::exportToSVG(const std::string& svgPath, const std::list<Geometry*> g
   svg << std::format("viewBox=\"{} {} {} {}\" >", minX - paddingX, -(minY + height + paddingY), width + 2 * paddingX, height + 2 * paddingY) << std::endl;
 
   // Draw polygons
-  for (const auto& geo : geometryList)
+  for (const auto& feature : geometryList)
   {
+    Geometry* geo = feature->Geometry.get();
     if (geo->isPolygon())
     {
       auto polygon = static_cast<PolygonXY*>(geo);
-      drawPolygon(polygon, svg);
+      drawPolygon(polygon, feature->Properties, svg);
+      drawText(svg, polygon->Centroid, std::format("{}-{}", feature->Properties.Id, feature->Properties.Name));
     }
     else if (geo->isMultiPolygon())
     {
       auto multiPoly = static_cast<MultiPolygonXY*>(geo);
       for (auto& poly : multiPoly->Polygons)
       {
-        drawPolygon(&poly, svg);
+        drawPolygon(&poly, feature->Properties, svg);
       }
+      drawText(svg, multiPoly->Centroid, std::format("{}-{}", feature->Properties.Id, feature->Properties.Name));
     }
   }
   svg << "</svg>";

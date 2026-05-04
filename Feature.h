@@ -5,6 +5,7 @@
 #include <format>
 #include <iostream>
 #include <vector>
+#include <optional>
 
 struct Properties
 {
@@ -15,7 +16,9 @@ struct Properties
   std::string Hash;
   std::string Pid;
 
-  //Properties(const std::string& number = "", const std::string& street = "", const std::string& city = "") : Number(number), Street(street), City(city) {}
+  std::string Name;
+  int Id = -1;
+
 };
 
 enum class GeometryType
@@ -54,6 +57,7 @@ struct Feature
 
   Feature();
   Feature(Feature&& rhs);
+  Feature(const Feature& rhs);
   virtual ~Feature();
 };
 
@@ -63,7 +67,9 @@ struct PointXY : public Geometry
   double Lon = 0.0;
   double Lat = 0.0;
 
-  PointXY(double lon, double lat) : Geometry(GeometryType::Point), Lat(lat), Lon(lon) {}
+  PointXY(double lon = 0.0, double lat = 0.0) : Geometry(GeometryType::Point), Lat(lat), Lon(lon) {}
+
+  PointXY(const PointXY& rhs);
 
   friend std::ostream& operator<<(std::ostream& ss, const PointXY& point)
   {
@@ -77,7 +83,11 @@ struct PolygonXY : public Geometry
 {
   std::vector<PointXY> Points;
 
+  std::optional<PointXY> Centroid;
+
   PolygonXY();
+
+  PolygonXY(const PolygonXY& rhs);
 };
 
 
@@ -85,5 +95,9 @@ struct MultiPolygonXY : public Geometry
 {
   std::vector<PolygonXY> Polygons;
 
+  std::optional<PointXY> Centroid;
+
   MultiPolygonXY();
+
+  MultiPolygonXY(const MultiPolygonXY& rhs);
 };

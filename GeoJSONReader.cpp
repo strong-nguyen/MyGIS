@@ -25,7 +25,9 @@ std::list<Feature> GeoJSONReader::read()
   {
     Feature parsedFeature;
 
-    // Parse properties -> skip
+    // Parse properties
+    parsedFeature.Properties.Name = feature["properties"].value("name", "");
+    parsedFeature.Properties.Id = feature.value("id", -1);
 
     // Parse geometry
     std::string type = feature["geometry"]["type"];

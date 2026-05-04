@@ -8,7 +8,7 @@
       "projectTarget": "MyGIS.exe",
       "name": "MyGIS.exe",
       //"args": [ "C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\us\\ct\\city_of_bridgeport-parcels-city.geojson" ]
-      "args": [ "C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\vn.json" ]
+      "args": [ "C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\vn.json", "--cal-area 14", "--merged-provinces C:\\Users\\trongnv\\Desktop\\Project\\MyGIS\\data\\merged-provinces.json" ]
     }
   ]
 }

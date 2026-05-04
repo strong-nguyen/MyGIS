@@ -6,19 +6,64 @@
 #include "GeoJSONReader.h"
 #include "GeometryTool.h"
 #include "VisualizerTool.h"
+#include "MergeProvince.h"
 
 #include <string>
 #include <filesystem>
+#include <algorithm>
 
 
 namespace fs = std::filesystem;
 
+template <typename T>
+void updateCentroid(Geometry* geo)
+{
+	T* shape = static_cast<T*>(geo);
+	PointXY centroid = MyGIS::findCentroid(*shape);
+	shape->Centroid = centroid;
+}
 
-int main(int argc, char** argv)
+bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>& mergedProvinceJson, int argc, char** argv)
 {
 	if (argc == 1)
 	{
 		std::cout << "Please run: MyGIS.exe /path/to/GeoJSONL-file\n";
+		return false;
+	}
+
+	for (int i = 0; i < argc; ++i)
+	{
+		std::string arg = argv[i];
+		if (arg == "--cal-area" && i + 1 < argc)
+		{
+			idToCalculateArea = std::stoi(argv[i + 1]);
+		}
+		else if (arg == "--merged-provinces" && i + 1 < argc)
+		{
+			mergedProvinceJson = argv[i + 1];
+		}
+	}
+
+	if (idToCalculateArea)
+	{
+		std::cout << "Id: " << *idToCalculateArea << std::endl;
+	}
+
+	if (mergedProvinceJson)
+	{
+		std::cout << "Merged province: " << *mergedProvinceJson << std::endl;
+	}
+
+	return true;
+}
+
+
+int main(int argc, char** argv)
+{
+	std::optional<int> idToCalculateArea;
+	std::optional<std::string> mergedProvinceJson;
+	if (!parseArgs(idToCalculateArea, mergedProvinceJson, argc, argv))
+	{
 		return 1;
 	}
 
@@ -35,81 +80,58 @@ int main(int argc, char** argv)
 		GeoJSONReader reader(geoJSONPath);
 		features = reader.read();
 	}
-	
-	PointXY* firstPoint = nullptr;
-	PointXY* secondPoint = nullptr;
-	PolygonXY* firstPoly = nullptr;
-	PolygonXY* secondPoly = nullptr;
 
-	//int i = 0;
-	//for (auto it = features.begin(); it != features.end(); ++it)
-	//{
-	//	if (it->Geometry->Type == GeometryType::Point)
-	//	{
-	//		if (i == 0)
-	//		{
-	//			firstPoint = static_cast<PointXY*>(it->Geometry.get());
-	//		}
-	//		else if (i == 1)
-	//		{
-	//			secondPoint = static_cast<PointXY*>(it->Geometry.get());
-	//		}
-	//		
-	//		++i;
+	// Calculate area
+	if (idToCalculateArea)
+	{
+		int id = *idToCalculateArea;
+		auto it = std::find_if(features.begin(), features.end(), [id](const Feature& feature)
+			{
+				return feature.Properties.Id == id;
+			});
+		if (it != features.end())
+		{
+			std::cout << "Area of Nghe An: " << MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6) << std::endl;
+		}
+	}
 
-	//		if (i == 2)
-	//		{
-	//			break;
-	//		}
-	//	}
-	//}
+	for (auto& f : features)
+	{
+		if (f.Geometry)
+		{
+			if (f.Geometry->isPolygon())
+			{
+				updateCentroid<PolygonXY>(f.Geometry.get());
+			}
+			else if (f.Geometry->isMultiPolygon())
+			{
+				updateCentroid<MultiPolygonXY>(f.Geometry.get());
+			}
+		} 
+	}
 
-	//i = 0;
-	//for (auto it = features.begin(); it != features.end(); ++it)
-	//{
-	//	if (it->Geometry->Type == GeometryType::Polygon)
-	//	{
-	//		if (i == 0)
-	//		{
-	//			firstPoly = static_cast<PolygonXY*>(it->Geometry.get());
-	//		}
-	//		else if (i == 1)
-	//		{
-	//			secondPoly = static_cast<PolygonXY*>(it->Geometry.get());
-	//		}
 
-	//		++i;
-	//		if (i == 2)
-	//		{
-	//			break;
-	//		}
-	//	}
-	//}
-
-	//if (firstPoint && secondPoint)
-	//{
-	//	std::cout << "First point: " << *firstPoint << std::endl;
-	//	std::cout << "Second point: " << *secondPoint << std::endl;
-
-	//	std::cout << std::format("Distance: {}\n", MyGIS::calculateDistance(*firstPoint, *secondPoint));
-	//}
-
-	//if (firstPoly)
-	//{
-	//	std::cout << std::format("Polygon area: {} m2\n", MyGIS::calculateArea(*firstPoly));
-	//}
-
-	std::list<Geometry*> l;
-	for (const auto& f : features)
+	std::list<Feature*> l;
+	for (auto& f : features)
 	{
 		if (!f.Geometry)
 		{
 			continue;
 		}
-		l.push_back(f.Geometry.get());
+
+		l.push_back(&f);
 	}
 
 	MyGIS::exportToSVG("polygons.svg", l);
+
+
+	// Merge province
+	if (mergedProvinceJson)
+	{
+		std::list<Feature> mergedProvinceFeatures;
+		mergeVietnamProvinces(*mergedProvinceJson, features, mergedProvinceFeatures);
+	}
+
 
 	return 0;
 }

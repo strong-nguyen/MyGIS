@@ -9,5 +9,5 @@
 
 namespace MyGIS
 {
-  void exportToSVG(const std::string& svgPath, const std::list<Geometry*> geometryList);
+  void exportToSVG(const std::string& svgPath, const std::list<Feature*>& geometryList);
 }
