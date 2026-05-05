@@ -100,7 +100,8 @@ int main(int argc, char** argv)
 			});
 		if (it != features.end())
 		{
-			std::string msg = std::format("Area of {} before merge: {} km2", it->Properties.Name, MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6));
+			double areaKm2 = MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
+			std::string msg = std::format("Area of {} before merge: {:.2f} km2", it->Properties.Name, areaKm2);
 			std::cout << msg << std::endl;
 		}
 	}
@@ -153,7 +154,6 @@ int main(int argc, char** argv)
 		}
 		MyGIS::exportToSVG("merged-polygons.svg", l);
 	}
-
 
 	return 0;
 }

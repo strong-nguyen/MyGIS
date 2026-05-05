@@ -14,7 +14,7 @@ project ("MyGIS")
 find_package(nlohmann_json CONFIG REQUIRED)
 
 # Add source to this project's executable.
-add_executable (MyGIS "MyGIS.cpp" "MyGIS.h" "GeoJSONLReader.h" "GeoJSONLReader.cpp" "Feature.h" "Feature.cpp" "GeometryTool.h" "GeometryTool.cpp" "VisualizerTool.h" "VisualizerTool.cpp" "GeometryDefine.h" "GeoJSONReader.h" "GeoJSONReader.cpp" "MergeProvince.h")
+add_executable (MyGIS "MyGIS.cpp" "MyGIS.h" "GeoJSONLReader.h" "GeoJSONLReader.cpp" "Feature.h" "Feature.cpp" "GeometryTool.h" "GeometryTool.cpp" "VisualizerTool.h" "VisualizerTool.cpp" "GeometryDefine.h" "GeoJSONReader.h" "GeoJSONReader.cpp" "MergeProvince.h" "MergeProvince.cpp")
 target_link_libraries(MyGIS PRIVATE nlohmann_json::nlohmann_json)
 target_compile_features(MyGIS PRIVATE cxx_std_20)
 

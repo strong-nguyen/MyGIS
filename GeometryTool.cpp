@@ -46,6 +46,22 @@ geo_multi_polygon MyGIS::toBoostMultiPolygon(const MultiPolygonXY& multiPolygon)
   return multi_poly;
 }
 
+MultiPolygonXY MyGIS::fromBoostMultiPolygon(const geo_multi_polygon& multiPolygon)
+{
+  MultiPolygonXY multiPolygonOutput;
+  for (const auto& p : multiPolygon)
+  {
+    PolygonXY polygon;
+    for (const auto& point : p.outer())
+    {
+      polygon.Points.push_back({ point.get<0>(), point.get<1>() });
+    }
+    multiPolygonOutput.Polygons.push_back(polygon);
+  }
+
+  return multiPolygonOutput;
+}
+
 PointXY MyGIS::findCentroid(const PolygonXY& polygon)
 {
   // I don't know why I cannot apply bg::centroid for the polygon in degree format
@@ -106,4 +122,30 @@ PolygonXY MyGIS::mergePolygon(const PolygonXY& polygon1, const PolygonXY& polygo
     std::cerr << "Failed to merge polygon" << std::endl;
     return PolygonXY();
   }
+}
+
+MultiPolygonXY MyGIS::mergePolygon(const PolygonXY& polygon, const MultiPolygonXY& multiPolygon)
+{
+  auto poly = toBoostPolygon(polygon);
+  auto multiPoly = toBoostMultiPolygon(multiPolygon);
+  bg::correct(poly);
+  bg::correct(multiPoly);
+
+  geo_multi_polygon output;
+  bg::union_(poly, multiPoly, output);
+  
+  return fromBoostMultiPolygon(output);
+}
+
+MultiPolygonXY MyGIS::mergePolygon(const MultiPolygonXY& multiPolygon1, const MultiPolygonXY& multiPolygon2)
+{
+  auto multiPoly1 = toBoostMultiPolygon(multiPolygon1);
+  auto multiPoly2 = toBoostMultiPolygon(multiPolygon2);
+  bg::correct(multiPoly1);
+  bg::correct(multiPoly2);
+
+  geo_multi_polygon output;
+  bg::union_(multiPoly1, multiPoly2, output);
+
+  return fromBoostMultiPolygon(output);
 }
