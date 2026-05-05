@@ -10,6 +10,8 @@ namespace MyGIS
 
   double calculateArea(const PolygonXY& polygon);
 
+  double calculateArea(const MultiPolygonXY& multiPolygon);
+
   geo_polygon toBoostPolygon(const PolygonXY& polygon);
 
   geo_multi_polygon toBoostMultiPolygon(const MultiPolygonXY& multiPolygon);

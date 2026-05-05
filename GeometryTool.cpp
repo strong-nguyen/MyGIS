@@ -20,7 +20,17 @@ double MyGIS::calculateArea(const PolygonXY& polygon)
     bg::append(poly.outer(), geo_point(p.Lon, p.Lat));
   }
 
+  bg::correct(poly);
+
   return bg::area(poly);
+}
+
+double MyGIS::calculateArea(const MultiPolygonXY& multiPolygon)
+{
+  auto multiPoly = toBoostMultiPolygon(multiPolygon);
+  bg::correct(multiPoly);
+
+  return bg::area(multiPoly);
 }
 
 geo_polygon MyGIS::toBoostPolygon(const PolygonXY& polygon)

@@ -11,6 +11,7 @@
 #include <string>
 #include <filesystem>
 #include <algorithm>
+#include <list>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -21,6 +22,8 @@ namespace fs = std::filesystem;
 
 
 bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>& mergedProvinceJson, int argc, char** argv);
+
+void visualizeOnSVG(std::list<Feature>& features, const char* svgFile);
 
 int main(int argc, char** argv)
 {
@@ -60,12 +63,21 @@ int main(int argc, char** argv)
 			});
 		if (it != features.end())
 		{
-			double areaKm2 = MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
+			double areaKm2 = 0.0;
+			if (it->Geometry->isPolygon())
+			{
+				areaKm2 = MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
+			}
+			else if (it->Geometry->isMultiPolygon())
+			{
+				areaKm2 = MyGIS::calculateArea(*(static_cast<MultiPolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
+			}
 			std::string msg = std::format("Area of {} before merge: {:.2f} km2", it->Properties.Name, areaKm2);
 			std::cout << msg << std::endl;
 		}
 	}
 
+	// Update centroid position
 	for (auto& f : features)
 	{
 		if (f.Geometry)
@@ -81,19 +93,8 @@ int main(int argc, char** argv)
 		} 
 	}
 
-
-	std::list<Feature*> l;
-	for (auto& f : features)
-	{
-		if (!f.Geometry)
-		{
-			continue;
-		}
-
-		l.push_back(&f);
-	}
-
-	MyGIS::exportToSVG("polygons.svg", l);
+	// Visualize on svg file
+	visualizeOnSVG(features, "polygons.svg");
 
 
 	// Merge province
@@ -102,17 +103,7 @@ int main(int argc, char** argv)
 		std::list<Feature> mergedProvinceFeatures;
 		mergeVietnamProvinces(*mergedProvinceJson, features, mergedProvinceFeatures);
 
-		std::list<Feature*> l;
-		for (auto& f : mergedProvinceFeatures)
-		{
-			if (!f.Geometry)
-			{
-				continue;
-			}
-
-			l.push_back(&f);
-		}
-		MyGIS::exportToSVG("merged-polygons.svg", l);
+		visualizeOnSVG(mergedProvinceFeatures, "merged-polygons.svg");
 	}
 
 	return 0;
@@ -122,7 +113,7 @@ bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>
 {
 	if (argc == 1)
 	{
-		std::cout << "Please run: MyGIS.exe /path/to/GeoJSONL-file\n";
+		std::cout << "Please run: MyGIS.exe /path/to/GeoJSONL-file [--cal-area id] [--merged-provinces]\n";
 		return false;
 	}
 
@@ -150,4 +141,19 @@ bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>
 	}
 
 	return true;
+}
+
+void visualizeOnSVG(std::list<Feature>& features, const char* svgFile)
+{
+	std::list<Feature*> l;
+	for (auto& f : features)
+	{
+		if (!f.Geometry)
+		{
+			continue;
+		}
+
+		l.push_back(&f);
+	}
+	MyGIS::exportToSVG(svgFile, l);
 }
