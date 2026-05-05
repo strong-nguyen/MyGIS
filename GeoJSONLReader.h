@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Feature.h"
-#include "GeometryDefine.h"
+#include "BoostDefine.h"
 
 #include <string>
 #include <list>

@@ -1,5 +1,5 @@
 #include "VisualizerTool.h"
-#include "GeometryDefine.h"
+#include "BoostDefine.h"
 #include "GeometryTool.h"
 
 #include <fstream>

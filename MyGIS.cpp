@@ -19,48 +19,8 @@
 
 namespace fs = std::filesystem;
 
-template <typename T>
-void updateCentroid(Geometry* geo)
-{
-	T* shape = static_cast<T*>(geo);
-	PointXY centroid = MyGIS::findCentroid(*shape);
-	shape->Centroid = centroid;
-}
 
-bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>& mergedProvinceJson, int argc, char** argv)
-{
-	if (argc == 1)
-	{
-		std::cout << "Please run: MyGIS.exe /path/to/GeoJSONL-file\n";
-		return false;
-	}
-
-	for (int i = 0; i < argc; ++i)
-	{
-		std::string arg = argv[i];
-		if (arg == "--cal-area" && i + 1 < argc)
-		{
-			idToCalculateArea = std::stoi(argv[i + 1]);
-		}
-		else if (arg == "--merged-provinces" && i + 1 < argc)
-		{
-			mergedProvinceJson = argv[i + 1];
-		}
-	}
-
-	if (idToCalculateArea)
-	{
-		std::cout << "Id to calculate area: " << *idToCalculateArea << std::endl;
-	}
-
-	if (mergedProvinceJson)
-	{
-		std::cout << "Merged province json path: " << *mergedProvinceJson << std::endl;
-	}
-
-	return true;
-}
-
+bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>& mergedProvinceJson, int argc, char** argv);
 
 int main(int argc, char** argv)
 {
@@ -112,11 +72,11 @@ int main(int argc, char** argv)
 		{
 			if (f.Geometry->isPolygon())
 			{
-				updateCentroid<PolygonXY>(f.Geometry.get());
+				MyGIS::updateCentroid<PolygonXY>(f.Geometry.get());
 			}
 			else if (f.Geometry->isMultiPolygon())
 			{
-				updateCentroid<MultiPolygonXY>(f.Geometry.get());
+				MyGIS::updateCentroid<MultiPolygonXY>(f.Geometry.get());
 			}
 		} 
 	}
@@ -156,4 +116,38 @@ int main(int argc, char** argv)
 	}
 
 	return 0;
+}
+
+bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>& mergedProvinceJson, int argc, char** argv)
+{
+	if (argc == 1)
+	{
+		std::cout << "Please run: MyGIS.exe /path/to/GeoJSONL-file\n";
+		return false;
+	}
+
+	for (int i = 0; i < argc; ++i)
+	{
+		std::string arg = argv[i];
+		if (arg == "--cal-area" && i + 1 < argc)
+		{
+			idToCalculateArea = std::stoi(argv[i + 1]);
+		}
+		else if (arg == "--merged-provinces" && i + 1 < argc)
+		{
+			mergedProvinceJson = argv[i + 1];
+		}
+	}
+
+	if (idToCalculateArea)
+	{
+		std::cout << "Id to calculate area: " << *idToCalculateArea << std::endl;
+	}
+
+	if (mergedProvinceJson)
+	{
+		std::cout << "Merged province json path: " << *mergedProvinceJson << std::endl;
+	}
+
+	return true;
 }

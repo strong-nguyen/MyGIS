@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Feature.h"
-#include "GeometryDefine.h"
+#include "BoostDefine.h"
 
 
 namespace MyGIS
@@ -19,6 +19,14 @@ namespace MyGIS
   PointXY findCentroid(const PolygonXY& polygon);
 
   PointXY findCentroid(const MultiPolygonXY& multiPolygon);
+
+  template <typename T>
+  void updateCentroid(Geometry* geo)
+  {
+    T* shape = static_cast<T*>(geo);
+    PointXY centroid = MyGIS::findCentroid(*shape);
+    shape->Centroid = centroid;
+  }
 
   // Merge two nearby polygons to form a new one
   PolygonXY mergePolygon(const PolygonXY& polygon1, const PolygonXY& polygon2);
