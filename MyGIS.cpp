@@ -12,6 +12,10 @@
 #include <filesystem>
 #include <algorithm>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 
 namespace fs = std::filesystem;
 
@@ -46,12 +50,12 @@ bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>
 
 	if (idToCalculateArea)
 	{
-		std::cout << "Id: " << *idToCalculateArea << std::endl;
+		std::cout << "Id to calculate area: " << *idToCalculateArea << std::endl;
 	}
 
 	if (mergedProvinceJson)
 	{
-		std::cout << "Merged province: " << *mergedProvinceJson << std::endl;
+		std::cout << "Merged province json path: " << *mergedProvinceJson << std::endl;
 	}
 
 	return true;
@@ -60,6 +64,11 @@ bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>
 
 int main(int argc, char** argv)
 {
+#ifdef _WIN32
+	// Set console output to UTF-8 (65001)
+	SetConsoleOutputCP(65001);
+#endif
+
 	std::optional<int> idToCalculateArea;
 	std::optional<std::string> mergedProvinceJson;
 	if (!parseArgs(idToCalculateArea, mergedProvinceJson, argc, argv))
@@ -91,7 +100,8 @@ int main(int argc, char** argv)
 			});
 		if (it != features.end())
 		{
-			std::cout << "Area of Nghe An: " << MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6) << std::endl;
+			std::string msg = std::format("Area of {} before merge: {} km2", it->Properties.Name, MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6));
+			std::cout << msg << std::endl;
 		}
 	}
 
@@ -130,6 +140,18 @@ int main(int argc, char** argv)
 	{
 		std::list<Feature> mergedProvinceFeatures;
 		mergeVietnamProvinces(*mergedProvinceJson, features, mergedProvinceFeatures);
+
+		std::list<Feature*> l;
+		for (auto& f : mergedProvinceFeatures)
+		{
+			if (!f.Geometry)
+			{
+				continue;
+			}
+
+			l.push_back(&f);
+		}
+		MyGIS::exportToSVG("merged-polygons.svg", l);
 	}
 
 

@@ -74,10 +74,12 @@ PointXY MyGIS::findCentroid(const MultiPolygonXY& multiPolygon)
   return findCentroid(multiPolygon.Polygons[0]);
 }
 
-geo_polygon MyGIS::mergePolygon(const geo_polygon& polygon1, const geo_polygon& polygon2)
+PolygonXY MyGIS::mergePolygon(const PolygonXY& polygon1, const PolygonXY& polygon2)
 {
-  bg::correct(polygon1);
-  bg::correct(polygon2);
+  auto poly1 = toBoostPolygon(polygon1);
+  auto poly2 = toBoostPolygon(polygon2);
+  bg::correct(poly1);
+  bg::correct(poly2);
 
   /*
   * Expand both polygons (Buffer) so they overlap.
@@ -85,6 +87,23 @@ geo_polygon MyGIS::mergePolygon(const geo_polygon& polygon1, const geo_polygon& 
   * Shrink them back (Negative Buffer).
   */
 
+  std::vector<geo_polygon> output;
+  bg::union_(poly1, poly2, output);
 
-  return geo_polygon();
+  if (output.size() == 1)
+  {
+    geo_polygon& poly = output[0];
+    PolygonXY polygon;
+    for (const auto& point : poly.outer())
+    {
+      polygon.Points.push_back({point.get<0>(), point.get<1>()});
+    }
+
+    return polygon;
+  }
+  else
+  {
+    std::cerr << "Failed to merge polygon" << std::endl;
+    return PolygonXY();
+  }
 }

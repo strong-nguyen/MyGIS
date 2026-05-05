@@ -19,5 +19,5 @@ namespace MyGIS
   PointXY findCentroid(const MultiPolygonXY& multiPolygon);
 
   // Merge two nearby polygons to form a new one
-  geo_polygon mergePolygon(const geo_polygon& polygon1, const geo_polygon& polygon2);
+  PolygonXY mergePolygon(const PolygonXY& polygon1, const PolygonXY& polygon2);
 }
