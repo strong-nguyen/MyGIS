@@ -4,6 +4,7 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/strategies/centroid/geographic.hpp>
 
+
 double MyGIS::calculateDistance(const PointXY& p1, const PointXY& p2)
 {
   geo_point geoP1(p1.Lon, p1.Lat);

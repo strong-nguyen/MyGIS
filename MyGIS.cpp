@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <list>
+#include <tuple>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -22,8 +23,8 @@ namespace fs = std::filesystem;
 
 
 bool parseArgs(std::optional<int>& idToCalculateArea, std::optional<std::string>& mergedProvinceJson, int argc, char** argv);
-
 void visualizeOnSVG(std::list<Feature>& features, const char* svgFile);
+std::tuple<std::string, double> calculateAreaFromId(int id, const std::list<Feature>& features);
 
 int main(int argc, char** argv)
 {
@@ -57,23 +58,14 @@ int main(int argc, char** argv)
 	if (idToCalculateArea)
 	{
 		int id = *idToCalculateArea;
-		auto it = std::find_if(features.begin(), features.end(), [id](const Feature& feature)
-			{
-				return feature.Properties.Id == id;
-			});
-		if (it != features.end())
+		auto [name, areaKm2] = calculateAreaFromId(id, features);
+		if (!name.empty() && areaKm2 > 0)
 		{
-			double areaKm2 = 0.0;
-			if (it->Geometry->isPolygon())
-			{
-				areaKm2 = MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
-			}
-			else if (it->Geometry->isMultiPolygon())
-			{
-				areaKm2 = MyGIS::calculateArea(*(static_cast<MultiPolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
-			}
-			std::string msg = std::format("Area of {} before merge: {:.2f} km2", it->Properties.Name, areaKm2);
-			std::cout << msg << std::endl;
+			std::cout << std::format("Area of {} before merge: {:.2f} Km2", name, areaKm2) << std::endl;
+		}
+		else
+		{
+			std::cout << std::format("Not found id {}", id) << std::endl;
 		}
 	}
 
@@ -104,6 +96,20 @@ int main(int argc, char** argv)
 		mergeVietnamProvinces(*mergedProvinceJson, features, mergedProvinceFeatures);
 
 		visualizeOnSVG(mergedProvinceFeatures, "merged-polygons.svg");
+
+		if (idToCalculateArea)
+		{
+			int id = *idToCalculateArea;
+			auto [name, areaKm2] = calculateAreaFromId(id, mergedProvinceFeatures);
+			if (!name.empty() && areaKm2 > 0)
+			{
+				std::cout << std::format("Area of {} after merge: {:.2f} Km2", name, areaKm2) << std::endl;
+			}
+			else
+			{
+				std::cout << std::format("Not found id {}", id) << std::endl;
+			}
+		}
 	}
 
 	return 0;
@@ -156,4 +162,30 @@ void visualizeOnSVG(std::list<Feature>& features, const char* svgFile)
 		l.push_back(&f);
 	}
 	MyGIS::exportToSVG(svgFile, l);
+}
+
+// Return in Km2
+std::tuple<std::string, double> calculateAreaFromId(int id, const std::list<Feature>& features)
+{
+
+	auto it = std::find_if(features.begin(), features.end(), [id](const Feature& feature)
+		{
+			return feature.Properties.Id == id;
+		});
+	if (it != features.end())
+	{
+		double areaKm2 = 0.0;
+		if (it->Geometry->isPolygon())
+		{
+			areaKm2 = MyGIS::calculateArea(*(static_cast<PolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
+		}
+		else if (it->Geometry->isMultiPolygon())
+		{
+			areaKm2 = MyGIS::calculateArea(*(static_cast<MultiPolygonXY*>(it->Geometry.get()))) / std::pow(10, 6);
+		}
+		
+		return {it->Properties.Name, areaKm2 };
+	}
+
+	return {"", -1.0};
 }
